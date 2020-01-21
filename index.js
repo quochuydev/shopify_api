@@ -27,7 +27,28 @@ class ShopifyApi {
     return url;
   }
 
-  getToken() {
+  getToken({ client_id, client_secret, code }) {
+    return new Promise((resolve, reject) => {
+      try {
+        let data = { client_id, client_secret, code }
+        let option = {
+          method: 'post',
+          url: `${this.shopify_host}/admin/oauth/access_token`,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data),
+        }
+        request(option, async (err, response, body) => {
+          if (err) { return reject(err) }
+          let data = JSON.parse(body);
+          resolve(data);
+        })
+      } catch (error) {
+        console.log(error);
+        reject(error);
+      }
+    })
 
   }
 
@@ -37,22 +58,14 @@ class ShopifyApi {
         let { method, url, resPath } = f;
         let { query, params, body, access_token } = p;
         url = `${this.shopify_host}/admin/${url}`;
-        if (params) { url = compile(url, params) }
-
+        if (params) { url = compile(url, params); }
+        if (query) { url = `${url}?${querystring.stringify(query)}`; }
         let options = {
           method, url,
           headers: {
             'X-Shopify-Access-Token': access_token
           }
         }
-        if (body) {
-
-        }
-
-        if (query) {
-
-        }
-
         if (['post', 'put'].indexOf(method) != -1) {
           options.headers['Content-Type'] = 'application/json';
           options.body = JSON.stringify(body);
