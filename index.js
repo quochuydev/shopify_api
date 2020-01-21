@@ -1,5 +1,6 @@
 const request = require('request');
 const querystring = require('querystring');
+const _ = require('lodash');
 let config = {};
 
 class ShopifyApi {
@@ -33,20 +34,18 @@ class ShopifyApi {
   call(f, p) {
     return new Promise((resolve, reject) => {
       try {
-        let { method, url } = f;
-        let { query, params, body } = p;
+        let { method, url, resPath } = f;
+        let { query, params, body, access_token } = p;
         url = `${this.shopify_host}/admin/${url}`;
+        if (params) { url = compile(url, params) }
+
         let options = {
           method, url,
           headers: {
-            'X-Shopify-Access-Token': p.access_token
+            'X-Shopify-Access-Token': access_token
           }
         }
         if (body) {
-
-        }
-
-        if (params) {
 
         }
 
@@ -54,10 +53,16 @@ class ShopifyApi {
 
         }
 
+        if (['post', 'put'].indexOf(method) != -1) {
+          options.headers['Content-Type'] = 'application/json';
+          options.body = JSON.stringify(body);
+        }
+
         request(options, (err, res, body) => {
-          console.log(`[CALL] [${String(method).toUpperCase()}] ${url} - ${res.statusCode}`)
           if (err) { return reject(err); }
           let data = JSON.parse(body);
+          console.log(`[CALL] [${String(method).toUpperCase()}] ${url} - ${res.statusCode}`)
+          if (resPath) { return resolve(_.get(data, resPath)) }
           resolve(data);
         });
       } catch (error) {
@@ -66,6 +71,15 @@ class ShopifyApi {
       }
     })
   }
+}
+
+function compile(template, data) {
+  let result = template.toString ? template.toString() : '';
+  result = result.replace(/{.+?}/g, function (matcher) {
+    var path = matcher.slice(1, -1).trim();
+    return _.get(data, path, '');
+  });
+  return result;
 }
 
 module.exports = ShopifyApi;

@@ -22,7 +22,16 @@ let SHOPIFY = {};
 SHOPIFY.WEBHOOKS = {
   LIST: {
     method: 'get',
+    url: 'webhooks.json',
+    resPath: 'webhooks'
+  },
+  CREATE: {
+    method: 'post',
     url: 'webhooks.json'
+  },
+  UPDATE: {
+    method: 'put',
+    url: 'webhooks/{id}.json'
   }
 }
 
@@ -32,47 +41,6 @@ SHOPIFY.ORDERS = {
     url: 'orders.json'
   }
 }
-
-app.get('/shopify/auth/callback', async (req, res) => {
-  let { code } = req.query;
-  let data = { client_id, client_secret, code }
-  let option = {
-    method: 'post',
-    url: `${shopify_host}/admin/oauth/access_token`,
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data),
-  }
-  request(option, async (err, response, body) => {
-    let { access_token } = JSON.parse(body);
-    console.log(access_token);
-    let API = new ShopifyApi({ shopify_host });
-    let webhooks = await API.call(SHOPIFY.WEBHOOKS.LIST, { access_token });
-    let orders = await API.call(SHOPIFY.ORDERS.LIST, { access_token });
-    console.log(webhooks)
-    console.log(orders)
-  })
-  res.json({ error: false });
-});
-
-app.listen(3000)
-
-let test = async () => {
-  let API = new ShopifyApi({ client_id, shopify_host });
-  let url = API.buildLink({ app_host, callback_path });
-  console.log(url)
-  return url;
-}
-test();
-
-// {
-//   "webhook": {
-//     "topic": "orders/create",
-//     "address": "https://whatever.hostname.com/",
-//     "format": "json"
-//   }
-// }
 
 let listWebhooks = [
   { topic: 'app/uninstalled', address },
@@ -97,6 +65,46 @@ let listWebhooks = [
   { topic: 'fulfillments/create', address },
   { topic: 'fulfillments/update', address },
 ]
+
+app.get('/shopify/auth/callback', async (req, res) => {
+  let { code } = req.query;
+  let data = { client_id, client_secret, code }
+  let option = {
+    method: 'post',
+    url: `${shopify_host}/admin/oauth/access_token`,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data),
+  }
+  request(option, async (err, response, body) => {
+    let { access_token } = JSON.parse(body);
+    let API = new ShopifyApi({ shopify_host });
+    let webhooks = await API.call(SHOPIFY.WEBHOOKS.LIST, { access_token });
+    for (let i = 0; i < listWebhooks.length; i++) {
+      let webhook = listWebhooks[i];
+      let found = webhooks.find(e => e.topic == webhook.topic);
+      if (found) {
+        await API.call(SHOPIFY.WEBHOOKS.UPDATE, { access_token, params: { id: found.id }, body: { webhook: { ...webhook } } });
+      } else {
+        await API.call(SHOPIFY.WEBHOOKS.CREATE, { access_token, body: { webhook: { ...webhook } } });
+      }
+    }
+    let orders = await API.call(SHOPIFY.ORDERS.LIST, { access_token });
+    console.log(orders)
+  })
+  res.json({ error: false });
+});
+
+app.listen(3000)
+
+let test = async () => {
+  let API = new ShopifyApi({ client_id, shopify_host });
+  let url = API.buildLink({ app_host, callback_path });
+  console.log(url)
+  return url;
+}
+test();
 
 // app/uninstalled, carts/create, carts/update, checkouts/create, checkouts/delete, checkouts/update, collection_listings/add, collection_listings/remove, collection_listings/update, collections/create, collections/delete, collections/update, customer_groups/create, customer_groups/delete, customer_groups/update, 
 // customers/create, customers/delete, customers/disable, customers/enable, customers/update, 
