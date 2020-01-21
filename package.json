@@ -1,0 +1,26 @@
+{
+  "name": "shopify_api",
+  "version": "1.0.0",
+  "description": "shopify_api",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quochuydev/shopify_api.git"
+  },
+  "keywords": [
+    "shopify",
+    "quochuydev"
+  ],
+  "author": "quochuydev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/quochuydev/shopify_api/issues"
+  },
+  "homepage": "https://github.com/quochuydev/shopify_api#readme",
+  "dependencies": {
+    "request": "^2.88.0"
+  }
+}
