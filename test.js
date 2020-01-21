@@ -54,18 +54,7 @@ let listWebhooks = [
 ]
 
 
-let test = async () => {
-  let express = require('express');
-  let app = express();
-  let API = new ShopifyApi({ client_id, shopify_host });
-  let url = API.buildLink({ app_host, callback_path });
-  console.log(url);
-  start({ app });
-  return url;
-}
-test();
-
-function start({ app }) {
+const start = ({ app }) => {
   app.get('/shopify/auth/callback', async (req, res) => {
     res.json({ error: false });
     let { code } = req.query;
@@ -87,6 +76,17 @@ function start({ app }) {
 
   app.listen(3000)
 }
+
+let test = async () => {
+  let express = require('express');
+  let app = express();
+  let API = new ShopifyApi({ client_id, shopify_host });
+  let url = API.buildLink({ app_host, callback_path });
+  console.log(url);
+  start({ app });
+  return url;
+}
+// test();
 
 // app/uninstalled, carts/create, carts/update, checkouts/create, checkouts/delete, checkouts/update, collection_listings/add, collection_listings/remove, collection_listings/update, collections/create, collections/delete, collections/update, customer_groups/create, customer_groups/delete, customer_groups/update, 
 // customers/create, customers/delete, customers/disable, customers/enable, customers/update, 

@@ -1,7 +1,7 @@
 {
-  "name": "shopify_api",
+  "name": "shopify_mono",
   "version": "1.0.0",
-  "description": "shopify_api",
+  "description": "shopify_mono",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
